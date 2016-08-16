@@ -8,18 +8,15 @@ const call = (client, key, ...args) =>
 
 exports.list = client => call(client, 'listContainers', {all: true});
 
-const normalizeConfig = config => {
-  const {clone, command: Cmd, env = {}, image: Image, labels: Labels = {}} =
-    config;
-
-  return {
-    clone,
-    Cmd,
-    Env: Object.keys(env).map(key => `${key}=${env[key]}`),
-    Image,
-    Labels
-  };
-};
+const normalizeConfig = config =>
+  Object.assign({}, config, {
+    Cmd: config.command,
+    command: undefined,
+    Env: Object.keys(config.env || {}).map(key => `${key}=${config.env[key]}`),
+    env: undefined,
+    Image: config.image,
+    image: undefined
+  });
 
 const mergeConfig = (a, b) =>
   Object.assign({}, a, {
