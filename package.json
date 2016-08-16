@@ -1,0 +1,14 @@
+{
+  "name": "con-man",
+  "version": "0.0.0",
+  "main": "src",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/caseywebdev/con-man"
+  },
+  "dependencies": {
+    "aws-sdk": "2",
+    "dockerode": "2"
+  }
+}
