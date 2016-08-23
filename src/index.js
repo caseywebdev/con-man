@@ -6,7 +6,8 @@ const PROVIDERS = {
 [
   'list',
   'start',
-  'stop'
+  'stop',
+  'remove'
 ].forEach(key =>
   exports[key] = (options = {}) =>
     new Promise(resolve => {
