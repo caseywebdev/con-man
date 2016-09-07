@@ -89,9 +89,12 @@ exports.start = (
           containerOverrides: [{
             name: getContainerName({taskDefinition, image}),
             command,
-            environment: Object.keys(env).map(name =>
-              ({name, value: env[name]})
-            )
+            environment: Object.keys(env).map(name => ({
+              name,
+
+              // ECS will complain if the envvar value isn't a string.
+              value: `${env[name] == null ? '' : env[name]}`
+            }))
           }]
         }
       }).promise()

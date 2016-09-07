@@ -12,7 +12,9 @@ const normalizeConfig = config =>
   Object.assign({}, config, {
     Cmd: config.command,
     command: undefined,
-    Env: Object.keys(config.env || {}).map(key => `${key}=${config.env[key]}`),
+    Env: Object.keys(config.env || {}).map(key =>
+      `${key}=${config.env[key] == null ? '' : config.env[key]}`
+    ),
     env: undefined,
     Image: config.image,
     image: undefined
