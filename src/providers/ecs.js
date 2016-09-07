@@ -19,6 +19,8 @@ exports.list = (client, {cluster} = {}, {tasks = [], nextToken} = {}) =>
     });
 
 const updateContainerDefinition = ({containerDefinition, image}) => {
+  if (image === containerDefinition.image) return containerDefinition;
+
   const [repoA] = image.split(':');
   const [repoB] = containerDefinition.image.split(':');
   if (repoA !== repoB) return containerDefinition;
@@ -27,7 +29,7 @@ const updateContainerDefinition = ({containerDefinition, image}) => {
 };
 
 const updateContainerDefinitions = ({containerDefinitions, image}) => {
-  const updated = containerDefinitions.slice();
+  const updated = [];
   let didUpdate = false;
   for (let i = 0, l = containerDefinitions.length; i < l; ++i) {
     const containerDefinition = containerDefinitions[i];
@@ -43,7 +45,14 @@ const updateTaskDefinitionImage = ({taskDefinition, image}) => {
   const updated = updateContainerDefinitions({containerDefinitions, image});
   if (updated === containerDefinitions) return taskDefinition;
 
-  return Object.assign({}, taskDefinition, {containerDefinitions: updated});
+  taskDefinition = Object.assign({}, taskDefinition, {
+    containerDefinitions: updated
+  });
+  delete taskDefinition.requiresAttributes;
+  delete taskDefinition.revision;
+  delete taskDefinition.status;
+  delete taskDefinition.taskDefinitionArn;
+  return taskDefinition;
 };
 
 const updateTaskDefinition = ({client, taskDefinition, image}) => {
@@ -99,7 +108,14 @@ exports.start = (
         }
       }).promise()
     )
-    .then(({tasks: {0: {taskArn}}}) => taskArn);
+    .then(({tasks, failures}) => {
+      if (failures[0]) {
+        const {arn, reason} = failures[0];
+        throw new Error(`${arn} failed to start with reason: ${reason}`);
+      }
+
+      return tasks[0].arn;
+    });
 
 exports.stop = (client, {cluster, id}) =>
   client.stopTask({cluster, task: id}).promise();
