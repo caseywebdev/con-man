@@ -114,7 +114,7 @@ exports.start = (
         throw new Error(`${arn} failed to start with reason: ${reason}`);
       }
 
-      return tasks[0].arn;
+      return tasks[0].taskArn;
     });
 
 exports.stop = (client, {cluster, id}) =>
