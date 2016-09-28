@@ -1,6 +1,7 @@
 const PROVIDERS = {
   docker: require('./providers/docker'),
-  ecs: require('./providers/ecs')
+  ecs: require('./providers/ecs'),
+  kubernetes: require('./providers/kubernetes')
 };
 
 [

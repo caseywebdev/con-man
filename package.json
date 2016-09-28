@@ -1,6 +1,6 @@
 {
   "name": "con-man",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "main": "src",
   "license": "MIT",
   "repository": {
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "aws-sdk": "2",
-    "dockerode": "2"
+    "dockerode": "2",
+    "k8s": "0.4"
   }
 }
