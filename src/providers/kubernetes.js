@@ -1,5 +1,6 @@
 const _ = require('underscore');
 const {api} = require('k8s');
+const assert = require('assert');
 
 const TEN_SECONDS = 1000 * 10;
 
@@ -49,5 +50,7 @@ const remove = exports.remove = (client, {namespace, id}) =>
     ({metadata: {deletionTimestamp}}) =>
       (deletionTimestamp ? wait(TEN_SECONDS) : stop(client, {namespace, id}))
         .then(() => remove(client, {namespace, id})),
-    er => { if (!er || er.code !== 404) throw er; }
+    er => {
+      try { assert.equal(JSON.parse(er).code, 404); } catch (__) { throw er; }
+    }
   );
