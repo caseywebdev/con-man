@@ -1,6 +1,10 @@
 const _ = require('underscore');
 const {api} = require('k8s');
 
+const TEN_SECONDS = 1000 * 10;
+
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 exports.getClient = options => api(options);
 
 exports.list = (client, {namespace} = {}) =>
@@ -37,7 +41,13 @@ exports.start = (client,
       })
     ).then(({metadata: {name}}) => name);
 
-exports.stop = (client, {namespace, id}) =>
+const stop = exports.stop = (client, {namespace, id}) =>
   client.delete(`namespaces/${namespace}/pods/${id}`);
 
-exports.remove = () => Promise.resolve();
+const remove = exports.remove = (client, {namespace, id}) =>
+  client.get(`namespaces/${namespace}/pods/${id}`).then(
+    ({metadata: {deletionTimestamp}}) =>
+      (deletionTimestamp ? wait(TEN_SECONDS) : stop(client, {namespace, id}))
+        .then(() => remove(client, {namespace, id})),
+    er => { if (!er || er.code !== 404) throw er; }
+  );
