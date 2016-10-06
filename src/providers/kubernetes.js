@@ -46,30 +46,19 @@ const stop = exports.stop = (client, {namespace, id, gracePeriodSeconds}) =>
   client.delete(`namespaces/${namespace}/pods/${id}`, {gracePeriodSeconds});
 
 const remove = exports.remove = (client, {namespace, id}) =>
-  client.get(`namespaces/${namespace}/pods/${id}`).then(
-    ({
+  client.get(`namespaces/${namespace}/pods/${id}`)
+    .then(({
       metadata: {deletionTimestamp},
       spec: {terminationGracePeriodSeconds}
     }) => {
-      let promise = Promise.resolve();
+      if (!deletionTimestamp) return stop(client, {namespace, id});
 
-      // If the pod hasn't been scheduled to terminate yet, do that first.
-      if (!deletionTimestamp) promise = stop(client, {namespace, id});
-      else {
-        const delta = (_.now() - new Date(deletionTimestamp)) / 1000;
+      const delta = (_.now() - new Date(deletionTimestamp)) / 1000;
+      if (delta < terminationGracePeriodSeconds) return wait(TEN_SECONDS);
 
-        // If the pod is terminating check to see if it is still within its
-        // grace period. If so, wait and try again.
-        if (delta < terminationGracePeriodSeconds) promise = wait(TEN_SECONDS);
-
-        // Otherwise forcefully kill the pod as it may be indefinitely stuck in
-        // the terminating state.
-        else promise = stop(client, {namespace, id, gracePeriodSeconds: 0});
-      }
-
-      return promise.then(() => remove(client, {namespace, id}));
-    },
-    er => {
+      return stop(client, {namespace, id, gracePeriodSeconds: 0});
+    })
+    .then(() => remove(client, {namespace, id}))
+    .catch(er => {
       try { assert.equal(JSON.parse(er).code, 404); } catch (__) { throw er; }
-    }
-  );
+    });
