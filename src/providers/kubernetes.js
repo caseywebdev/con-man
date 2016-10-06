@@ -2,10 +2,6 @@ const _ = require('underscore');
 const {api} = require('k8s');
 const assert = require('assert');
 
-const TEN_SECONDS = 1000 * 10;
-
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 exports.getClient = options => api(options);
 
 exports.list = (client, {namespace} = {}) =>
@@ -54,9 +50,10 @@ const remove = exports.remove = (client, {namespace, id}) =>
       if (!deletionTimestamp) return stop(client, {namespace, id});
 
       const delta = (_.now() - new Date(deletionTimestamp)) / 1000;
-      if (delta < terminationGracePeriodSeconds) return wait(TEN_SECONDS);
+      const wait = () => new Promise(resolve => setTimeout(resolve, 1000 * 10));
+      if (delta < terminationGracePeriodSeconds) return wait();
 
-      return stop(client, {namespace, id, gracePeriodSeconds: 0});
+      return stop(client, {namespace, id, gracePeriodSeconds: 0}).then(wait);
     })
     .then(() => remove(client, {namespace, id}))
     .catch(er => {
