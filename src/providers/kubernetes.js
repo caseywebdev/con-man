@@ -39,7 +39,9 @@ exports.start = (client,
     ).then(({metadata: {name}}) => name);
 
 const stop = exports.stop = (client, {namespace, id, gracePeriodSeconds}) =>
-  client.delete(`namespaces/${namespace}/pods/${id}`, {gracePeriodSeconds});
+  client.delete(`namespaces/${namespace}/pods/${id}`, {
+    json: {gracePeriodSeconds}
+  });
 
 const remove = exports.remove = (client, {namespace, id}) =>
   client.get(`namespaces/${namespace}/pods/${id}`)
